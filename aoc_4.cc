@@ -1,21 +1,22 @@
 #include <iostream>
-#include <vector>
-#include <algorithm>
-#include <cmath>
-#include <optional>
 #include <chrono>
+#include <utility>
 
 struct day4
 {
 	std::pair<int, int> solve()
 	{
-		int count= 0;
-		for (int i = 134792; i < 675810; ++i)
-			count += is_valid(i);
-		return {count, 0};
+		std::pair<int, int> p{0, 0};
+		for (int x = 134792; x < 675810; ++x)
+		{
+			auto [v1, v2] = is_valid(x);
+			p.first += v1 ? 1 : 0;
+			p.second += v2 ? 1 : 0;
+		}
+		return p;
 	}
 
-	bool is_valid(int x)
+	std::pair<bool, bool> is_valid(int x)
 	{
 		const int w2 = x / 10;
 		const int w3 = w2 / 10;
@@ -27,9 +28,24 @@ struct day4
 		const int d3 = w3 - w4 * 10;
 		const int d4 = w4 - w5 * 10;
 		const int d5 = w5 - d6 * 10;
+
 		const bool increasing = d6 <= d5 && d5 <= d4 && d4 <= d3 && d3 <= d2 && d2 <= d1;
-		const bool adjacent = d6 == d5 || d5 == d4 || d4 == d3 || d3 == d2 || d2 == d1;
-		return adjacent && increasing;
+		const bool two_adjacent = d6 == d5 || d5 == d4 || d4 == d3 || d3 == d2 || d2 == d1;
+		const bool v1 = increasing && two_adjacent;
+
+		if (!v1)
+			return {false, false};
+
+		if (d6 == d5 && d5 == d4)
+			return {true, d4 != d3 && (d3 == d2 || d2 == d1)};
+		else if (d5 == d4 && d4 == d3)
+			return {true, d3 != d2 && d2 == d1};
+		else if (d4 == d3 && d3 == d2)
+			return {true, d4 != d5 && d5 == d6};
+		else if (d3 == d2 && d2 == d1)
+			return {true, d3 != d4 && (d4 == d5 || d5 == d6)};
+
+		return {true, true};
 	}
 };
 
