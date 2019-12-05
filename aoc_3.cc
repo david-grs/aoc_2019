@@ -79,6 +79,9 @@ private:
 
 int main()
 {
+	std::ios_base::sync_with_stdio(false);
+	std::cin.tie();
+
 	const auto startTs = std::chrono::steady_clock::now();
 
 	circuit c;
