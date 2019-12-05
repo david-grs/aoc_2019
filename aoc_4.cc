@@ -15,7 +15,7 @@ struct number
 		d[5] = (n / 100000) % 10;
 	}
 
-	constexpr int operator[](std::size_t n) { return d[n]; }
+	constexpr int operator[](std::size_t n) const { return d[n]; }
 
 	void operator++()
 	{
@@ -29,13 +29,13 @@ struct number
 		}
 	}
 	
-	bool operator!=(const number& other) const 
-	{
-		return d != other.d;
-	}
-
 	std::array<int, 6> d;
 };
+
+inline bool increasing(const number& x)
+{
+	return x[5] <= x[4] && x[4] <= x[3] && x[3] <= x[2] && x[2] <= x[1] && x[1] <= x[0];
+}
 
 struct day4
 {
@@ -50,20 +50,21 @@ struct day4
 		
 		for (int i = 0; i < iterations; ++i, ++x)
 		{
-			auto [v1, v2] = is_valid(x);
-			p.first += v1 ? 1 : 0;
-			p.second += v2 ? 1 : 0;
+			if (increasing(x))
+			{
+				auto [v1, v2] = is_valid(x);
+				p.first += v1 ? 1 : 0;
+				p.second += v2 ? 1 : 0;
+			}
 		}
 		return p;
 	}
 
 	std::pair<bool, bool> is_valid(number x)
 	{
-		const bool increasing = x[5] <= x[4] && x[4] <= x[3] && x[3] <= x[2] && x[2] <= x[1] && x[1] <= x[0];
 		const bool two_adjacent = x[5] == x[4] || x[4] == x[3] || x[3] == x[2] || x[2] == x[1] || x[1] == x[0];
-		const bool v0 = increasing && two_adjacent;
 
-		if (!v0)
+		if (!two_adjacent)
 			return {false, false};
 
 		if (x[5] == x[4] && x[4] == x[3])
@@ -81,7 +82,7 @@ struct day4
 
 int main()
 {
-	const auto startTs = std::chrono::steady_clock::now();
+	auto startTs = std::chrono::steady_clock::now();
 
 	day4 d;
 	auto [s1, s2] = d.solve();
