@@ -1,7 +1,4 @@
-#include <string>
 #include <iostream>
-#include <vector>
-#include <numeric>
 #include <vector>
 #include <algorithm>
 #include <cmath>
@@ -21,19 +18,20 @@ std::optional<point> intersects(segment s1, segment s2)
 		return point{s1.first.x, s2.second.y};
 	else if (between(s2.first.x, s1.first.x, s1.second.x) && between(s1.first.y, s2.first.y, s2.second.y))
 		return point{s2.first.x, s1.second.y};
-	return {};	
+	return {};
 }
 
 class circuit
 {
 public:
-	void solve()
+	static constexpr point central_port{0, 0};
+
+	std::pair<int, int> solve()
 	{
 		segments wires1, wires2;
 		read_input(wires1);
 		read_input(wires2);
 
-		auto startTs = std::chrono::steady_clock::now();
 		std::vector<std::pair<point, int>> intersections;
 		int steps1 = 0;
 		for (auto w1 : wires1)
@@ -48,21 +46,17 @@ public:
 			steps1 += distance(w1.first, w1.second);
 		}
 
-		std::vector<int> dists(intersections.size());
-		std::transform(intersections.cbegin(), intersections.cend(), dists.begin(), [](auto p) { return distance(point{}, p.first); });
-		const int min1 = *std::min_element(dists.cbegin(), dists.cend());
-		
-		std::transform(intersections.cbegin(), intersections.cend(), dists.begin(), [](auto p) { return p.second; });
-		const int min2 = *std::min_element(dists.cbegin(), dists.cend());
-		auto endTs = std::chrono::steady_clock::now();
-
-		std::cout << min1 << ", " << min2 << ", " << std::chrono::duration_cast<std::chrono::microseconds>(endTs - startTs).count() << "us" << std::endl;
+		auto it1 = std::min_element(intersections.cbegin(), intersections.cend(),
+						[](auto p1, auto p2) { return distance(central_port, p1.first) < distance(central_port, p2.first); });
+		auto it2 = std::min_element(intersections.cbegin(), intersections.cend(),
+						[](auto p1, auto p2) { return p1.second < p2.second; });
+		return {distance(central_port, it1->first), it2->second};
 	}
 
 private:
 	void read_input(segments& s)
 	{
-		point p;
+		point p = central_port;
 		point prev = p;
 		for	(char direction; std::cin >> direction; )
 		{
@@ -85,7 +79,14 @@ private:
 
 int main()
 {
+	const auto startTs = std::chrono::steady_clock::now();
+
 	circuit c;
-	c.solve();
+	auto [min1, min2 ] = c.solve();
+
+	const auto endTs = std::chrono::steady_clock::now();
+	std::cout << std::chrono::duration_cast<std::chrono::microseconds>(endTs - startTs).count() << "us" << std::endl;
+	std::cout << min1 << " " << min2 << std::endl;
 	return 0;
 }
+
