@@ -1,13 +1,54 @@
 #include <iostream>
 #include <chrono>
 #include <utility>
+#include <array>
+
+struct number
+{
+	explicit number(int n)
+	{
+		d[0] = n % 10;
+		d[1] = (n / 10) % 10;
+		d[2] = (n / 100) % 10;
+		d[3] = (n / 1000) % 10;
+		d[4] = (n / 10000) % 10;
+		d[5] = (n / 100000) % 10;
+	}
+
+	constexpr int operator[](std::size_t n) { return d[n]; }
+
+	void operator++()
+	{
+		for (int i = 0; i < 6; ++i)
+		{
+			d[i] += 1;
+			if (d[i] == 10)
+				d[i] = 0;
+			else
+				break;
+		}
+	}
+	
+	bool operator!=(const number& other) const 
+	{
+		return d != other.d;
+	}
+
+	std::array<int, 6> d;
+};
 
 struct day4
 {
 	std::pair<int, int> solve()
 	{
+		constexpr int start = 134792;
+		constexpr int end = 675810;
+		constexpr int iterations = end - start;
+
 		std::pair<int, int> p{0, 0};
-		for (int x = 134792; x < 675810; ++x)
+		number x{start};
+		
+		for (int i = 0; i < iterations; ++i, ++x)
 		{
 			auto [v1, v2] = is_valid(x);
 			p.first += v1 ? 1 : 0;
@@ -16,34 +57,23 @@ struct day4
 		return p;
 	}
 
-	std::pair<bool, bool> is_valid(int x)
+	std::pair<bool, bool> is_valid(number x)
 	{
-		const int w2 = x / 10;
-		const int w3 = w2 / 10;
-		const int w4 = w3 / 10;
-		const int w5 = w4 / 10;
-		const int d6 = w5 / 10;
-		const int d1 = x - w2 * 10;
-		const int d2 = w2 - w3 * 10;
-		const int d3 = w3 - w4 * 10;
-		const int d4 = w4 - w5 * 10;
-		const int d5 = w5 - d6 * 10;
+		const bool increasing = x[5] <= x[4] && x[4] <= x[3] && x[3] <= x[2] && x[2] <= x[1] && x[1] <= x[0];
+		const bool two_adjacent = x[5] == x[4] || x[4] == x[3] || x[3] == x[2] || x[2] == x[1] || x[1] == x[0];
+		const bool v0 = increasing && two_adjacent;
 
-		const bool increasing = d6 <= d5 && d5 <= d4 && d4 <= d3 && d3 <= d2 && d2 <= d1;
-		const bool two_adjacent = d6 == d5 || d5 == d4 || d4 == d3 || d3 == d2 || d2 == d1;
-		const bool v1 = increasing && two_adjacent;
-
-		if (!v1)
+		if (!v0)
 			return {false, false};
 
-		if (d6 == d5 && d5 == d4)
-			return {true, d4 != d3 && (d3 == d2 || d2 == d1)};
-		else if (d5 == d4 && d4 == d3)
-			return {true, d3 != d2 && d2 == d1};
-		else if (d4 == d3 && d3 == d2)
-			return {true, d4 != d5 && d5 == d6};
-		else if (d3 == d2 && d2 == d1)
-			return {true, d3 != d4 && (d4 == d5 || d5 == d6)};
+		if (x[5] == x[4] && x[4] == x[3])
+			return {true, x[3] != x[2] && (x[2] == x[1] || x[1] == x[0])};
+		else if (x[4] == x[3] && x[3] == x[2])
+			return {true, x[2] != x[1] && x[1] == x[0]};
+		else if (x[3] == x[2] && x[2] == x[1])
+			return {true, x[3] != x[4] && x[4] == x[5]};
+		else if (x[2] == x[1] && x[1] == x[0])
+			return {true, x[2] != x[3] && (x[3] == x[4] || x[4] == x[5])};
 
 		return {true, true};
 	}
