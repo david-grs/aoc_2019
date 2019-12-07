@@ -12,24 +12,24 @@ struct day7
 	{
 		IntCode acs = IntCode::FromStdin();
 		std::array<int, 5> phases{0, 1, 2, 3, 4};
-		std::array<int, 5> maxPhases{};
+		std::array<IntCode, 5> amps{acs, acs, acs, acs, acs};
 		int maxThurster = 0;
 
 		do
 		{
-			IntCode amp = acs;
 			int output = 0;
+
+			for (int i = 0; i < 5; ++i)
+				amps[i].Reset(acs);
+
 			for (int i = 0; i < 5; ++i)
 			{
 				int read = 0;
-				amp.Execute([&]() { return read++ == 0 ? phases[i] : output; }, [&](int x) { output = x; });
+				amps[i].Execute([&]() { return read++ == 0 ? phases[i] : output; },
+								[&](int x) { output = x; });
 			}
 
-			if (output > maxThurster)
-			{
-				maxThurster = output;
-				maxPhases = phases;
-			}
+			maxThurster = std::max(maxThurster, output);
 		} while (std::next_permutation(phases.begin(), phases.end()));
 		return maxThurster;
 	}
@@ -50,6 +50,7 @@ struct day7
 			std::array<int, 5> writes{0, 0, 0, 0, 0};
 			std::array<bool, 5> running{true, true, true, true, true};
 			int output = 0;
+
 			for (int run = 0; std::any_of(running.cbegin(), running.cend(), [](bool b) { return b; }); ++run)
 			{
 				for (int i = 0; i < 5; ++i)
@@ -77,7 +78,7 @@ int main()
 	auto startTs = std::chrono::steady_clock::now();
 
 	day7 d;
-	//const int s1 = d.solve1();
+	//const int s = d.solve1();
 	const int s = d.solve2();
 
 	const auto endTs = std::chrono::steady_clock::now();
