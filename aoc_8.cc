@@ -14,11 +14,27 @@ struct day8
 	int solve()
 	{
 		const Image img = Image::FromStdin(Width, Height);
+		solve2(img);
+		return solve1(img);
+	}
+
+	int solve1(const Image& img)
+	{
 		std::vector<std::array<int, 3>> colors(img.LayersCount());
-		img.Visit([&](std::size_t layer, int x) { colors.at(layer)[x] += 1; });
+		img.VisitLayers([&](std::size_t layer, int x) { colors.at(layer)[x] += 1; });
 		const std::array<int, 3> layer = *std::min_element(colors.cbegin(), colors.cend(),
 										[&](const auto& lhs, const auto& rhs) { return lhs[0] < rhs[0]; });
 		return layer[1] * layer[2];
+	}
+
+	void solve2(const Image& img)
+	{
+		img.VisitFlatten([&](std::size_t pos, int x)
+		{
+			std::cout << (x == 1 ? 'X' : ' ');
+			if ((pos + 1) % img.Width() == 0)
+				std::cout << '\n';
+		});
 	}
 };
 
